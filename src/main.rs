@@ -44,7 +44,7 @@ fn main() {
     let args = cli::Args::parse();
     let conf = &conf::Config::from(args.room,
         args.user,
-        "255.255.255.255".to_string(),
+        conf::DEF_BROADCAST_ADDR.to_string(),
     args.port);
     println!("{}", "Please input your chat message at following".yellow());
     loop {
