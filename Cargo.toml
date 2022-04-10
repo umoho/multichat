@@ -1,0 +1,17 @@
+[package]
+name = "multichat"
+version = "0.1.0"
+edition = "2021"
+authors = ["umoho"]
+description = "A simple software for local chatting"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+colored = "2.0.0"
+json = "0.12.4"
+chrono = "0.4.19"
+
+[dependencies.clap]
+version = "3.1.8"
+features = ["derive"]
