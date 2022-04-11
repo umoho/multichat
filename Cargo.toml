@@ -11,6 +11,7 @@ description = "A simple software for local chatting"
 colored = "2.0.0"
 json = "0.12.4"
 chrono = "0.4.19"
+magic-crypt = "3.1.10"
 
 [dependencies.clap]
 version = "3.1.8"

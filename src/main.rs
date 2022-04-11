@@ -4,6 +4,8 @@ mod conf;
 mod proto;
 mod user;
 mod cli;
+mod data;
+mod crypto;
 
 use clap::StructOpt;
 use colored::*;
@@ -15,31 +17,7 @@ fn main() {
         args.user,
         conf::DEF_BROADCAST_ADDR.to_string(),
     args.port);
-    
-    std::thread::spawn(move || {
-        loop {
-            let port = &config.service_port;
-            let (buff, (_amt, src)) 
-                = recv::receive_from_broadcast(
-                    *port
-                ).unwrap();
-
-            let p = proto::Protocol::from_buf(buff);
-            if let Some(p) = p {
-                if let Some(chat_msg) = proto::ChatMessage::from_proto(&p) {
-                    println!("{}:\n{}\n", 
-                        format!("{} {}",
-                            chat_msg.user_name.green().bold(),
-                            format!("({}) [{}]",
-                                src.ip().to_string().blue(),
-                                chat_msg.msg_time.red()),
-                        ),
-                        format!("<{}> {}", &config.room_id.purple(), chat_msg.msg_content.yellow()),
-                    );
-                }
-            }
-        }
-    });
+    recv::listener_thread(config);
 
     let args = cli::Args::parse();
     let conf = &conf::Config::from(args.room,

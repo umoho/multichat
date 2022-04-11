@@ -1,11 +1,20 @@
-use crate::{proto, send, conf::Config};
+use crate::{proto, send, conf::Config, data, crypto};
 
 pub fn broadcast_chat(config: &Config, message: String) -> Result<(), std::io::Error> {
-    let chat_msg = proto::ChatMessage::new(
+    let chat_msg = data::ChatMessage::new(
+        config.room_id.clone(),
         config.user_name.clone(),
-         message,
-        now_time());
-    let proto = proto::Protocol::new(chat_msg);
+        time::now_timestamp(),
+         message
+        );
+    
+    let encrypted_chat_msg = crypto::encrypt(
+        chat_msg.as_json().as_str(),
+        config.room_id.as_str());
+    
+    let proto = proto::Protocol::new(
+        &encrypted_chat_msg);
+    
     let buf = proto.as_buf();
 
     send::send_to_broadcast(
@@ -15,8 +24,22 @@ pub fn broadcast_chat(config: &Config, message: String) -> Result<(), std::io::E
     Ok(())
 }
 
-fn now_time() -> String {
-    let now = chrono::Local::now();
-    let now_str = now.format("%Y-%m-%d %H:%M:%S").to_string();
-    now_str
+pub mod time {
+    
+    pub fn now_timestamp() -> i64 {
+        let now = chrono::Local::now();
+        let now_timestamp = now.timestamp();
+        now_timestamp
+    }
+
+    pub fn convert_timestamp_to_time(timestamp: i64) -> String {
+        let naive = chrono::NaiveDateTime::from_timestamp(timestamp, 0);
+        let now_str = naive.format("%Y-%m-%d %H:%M:%S").to_string();
+        now_str
+    }
+
+    pub fn difference(timestamp: i64) -> i64 {
+        now_timestamp() - timestamp
+    }
+
 }
