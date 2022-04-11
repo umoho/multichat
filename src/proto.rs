@@ -1,73 +1,68 @@
 
+const DATA: &str = "data";
+
 pub struct Protocol {
-    pub json_content: String,
+    pub data: String,
 }
 
 impl Protocol {
-    pub fn new(chat_message: ChatMessage) -> Self {
-        let json_content = build_json_content(chat_message);
+    pub fn new(content: &str) -> Self {
+        let data = build_data_json(content);
+
         Protocol {
-            json_content,
+            data,
         }
     }
+
     pub fn as_buf(self) -> Vec<u8> {
         let mut buf = Vec::new();
-        buf.extend_from_slice(self.json_content.as_bytes());
+        buf.extend_from_slice(self.data.as_bytes());
         buf
     }
 
     pub fn from_buf(buf: Vec<u8>) -> Option<Self> {
         match String::from_utf8(buf) {
-            Ok(json_content) => Some(Protocol { json_content }),
+            Ok(data) => Some(Protocol { data }),
             Err(_) => None,
         }
     }
-}
 
-pub struct ChatMessage {
-    pub user_name: String,
-    pub msg_content: String,
-    pub msg_time: String,
-}
-
-impl ChatMessage {
-    pub fn new(user_name: String, msg_content: String, msg_time: String) -> Self {
-        ChatMessage {
-            user_name,
-            msg_content,
-            msg_time,
+    pub fn as_json(&self) -> String {
+        match parse_data_json(&self.data) {
+            Some(d) => d,
+            None => todo!(),
         }
     }
 
-    pub fn from_proto(proto: &Protocol) -> Option<Self> {
-        let parsed = parse_json_content(proto.json_content.as_str());
-        let content = match parsed {
-            Ok(c) => c,
-            Err(e) => {
-                println!("{}", e);
-                return None
-            }
-        };
-        Some(content)
+    pub fn from_json(json: &str) -> Option<Self> {
+        let data = build_data_json(json);
+        Some(Protocol { data })
+    }
+
+    pub fn get_data_value(&self) -> Option<String> {
+        match parse_data_json(&self.data) {
+            Some(d) => Some(d),
+            None => None,
+        }
     }
 }
 
-fn build_json_content(chat_message: ChatMessage) -> String {
-    let mut json_content = json::JsonValue::new_object();
-    json_content["user-name"] = json::JsonValue::from(chat_message.user_name);
-    json_content["msg-content"] = json::JsonValue::from(chat_message.msg_content);
-    json_content["msg-time"] = json::JsonValue::from(chat_message.msg_time);
-    let json_content_str = json_content.dump();
-    json_content_str
+fn build_data_json(string: &str) -> String {
+    let mut json = json::JsonValue::new_object();
+    json[DATA] = json::JsonValue::from(string);
+    json.dump()
 }
 
-fn parse_json_content(json_content: &str) -> Result<ChatMessage, json::JsonError> {
-    let json_content_obj = json::parse(json_content)?;
-    let user_name = json_content_obj["user-name"].as_str().unwrap();
-    let msg_content = json_content_obj["msg-content"].as_str().unwrap();
-    let msg_time = json_content_obj["msg-time"].as_str().unwrap();
-    Ok(ChatMessage::new(
-        user_name.to_string(),
-        msg_content.to_string(),
-        msg_time.to_string()))
+fn parse_data_json(data: &str) -> Option<String> {
+    match json::parse(data) {
+        Ok(json) => {
+            match json[DATA].as_str() {
+                Some(data) => Some(data.to_string()),
+                None => None,
+            }
+        }
+        Err(_) => None,
+    }
 }
+
+
