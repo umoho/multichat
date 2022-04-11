@@ -23,7 +23,6 @@ impl ChatMessage {
     }
 
     pub fn from_proto(proto: &Protocol) -> Option<Self> {
-        println!("DEBUG data = {}", proto.as_json().as_str());
         let parsed = parse_content_json(proto.as_json().as_str());
         let chat_message_content = match parsed {
             Ok(c) => c,
