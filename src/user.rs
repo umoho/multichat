@@ -1,6 +1,8 @@
 use crate::{proto, send, conf::Config, data, crypto};
 
 pub fn broadcast_chat(config: &Config, message: String) -> Result<(), std::io::Error> {
+    
+    // build chat message struct
     let chat_msg = data::ChatMessage::new(
         config.room_id.clone(),
         config.user_name.clone(),
@@ -12,6 +14,7 @@ pub fn broadcast_chat(config: &Config, message: String) -> Result<(), std::io::E
         chat_msg.as_json().as_str(),
         config.room_id.as_str());
     
+    // build proto with encrypted chat message
     let proto = proto::Protocol::new(
         &encrypted_chat_msg);
     

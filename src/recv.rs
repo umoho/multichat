@@ -20,8 +20,10 @@ pub fn receive_from_broadcast(bind_port: u16)
 }
 
 pub fn listener_thread(config: Config) {
-    std::thread::spawn(move || {
+    std::thread::Builder::new().name("listener".to_string()).spawn(move || {
         loop {
+
+            // receive from broadcast
             let port = &config.service_port;
             let (buff, (_amt, src)) 
                 = receive_from_broadcast(
@@ -30,20 +32,24 @@ pub fn listener_thread(config: Config) {
 
             let p = proto::Protocol::from_buf(buff);
             if let Some(p) = p {
+
+                // try to decrypt
                 let decrypted_data = match crypto::decrypt(
                     p.get_data_value().unwrap().as_str(),
                     config.room_id.as_str()) 
                 {
                     Some(d) => d,
                     None => {
-                        println!("{}", "Failed to decrypt data".red());
+                        // ignore unknown message (maybe from other room)
                         continue;
                     },
                 };
 
+                // build proto
                 let decrypted_protocol = proto::Protocol::from_json(
                     &decrypted_data).unwrap();
                 
+                // print message
                 if let Some(chat_msg) = data::ChatMessage::from_proto(&decrypted_protocol) {
                     println!("{}:\n{}\n", 
                         format!("{} {}",
@@ -59,5 +65,5 @@ pub fn listener_thread(config: Config) {
                 }
             }
         }
-    });
+    }).unwrap();
 }
