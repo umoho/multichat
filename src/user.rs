@@ -28,13 +28,13 @@ pub mod time {
     
     pub fn now_timestamp() -> i64 {
         let now = chrono::Local::now();
-        let now_timestamp = now.timestamp();
+        let now_timestamp = now.timestamp_millis();
         now_timestamp
     }
 
     pub fn convert_timestamp_to_time(timestamp: i64) -> String {
-        let naive = chrono::NaiveDateTime::from_timestamp(timestamp, 0);
-        let now_str = naive.format("%Y-%m-%d %H:%M:%S").to_string();
+        let naive = chrono::NaiveDateTime::from_timestamp(timestamp / 1000, 0);
+        let now_str = naive.format("%Y-%m-%d %H:%M:%S UTC").to_string();
         now_str
     }
 
